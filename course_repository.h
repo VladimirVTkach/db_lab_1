@@ -1,3 +1,5 @@
+#pragma once
+
 #include "course.h"
 #include "group.h"
 
