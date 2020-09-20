@@ -1,3 +1,5 @@
+#pragma once
+
 struct Group {
     int group_id;
     char name[10];
