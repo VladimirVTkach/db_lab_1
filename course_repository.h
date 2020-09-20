@@ -10,12 +10,12 @@ struct CourseIndex {
 
 struct Course* get_m(int course_id);
 struct Course* get_s(int course_id, int group_id);
-void del_m(int course_id);
-void del_s(int course_id, int group_id);
-void update_m(int course_id, struct Course course);
-void update_s(int course_id, int group_id, struct Group group);
-void insert_m(struct Course course);
-void insert_s(int course_id, struct Group group);
+int del_m(int course_id);
+int del_s(int course_id, int group_id);
+int update_m(int course_id, struct Course course);
+int update_s(int course_id, int group_id, struct Group group);
+int insert_m(struct Course course);
+int insert_s(int course_id, struct Group group);
 int size_m();
 int size_s(int course_id);
 int ut_m();
