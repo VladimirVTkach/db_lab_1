@@ -1,21 +1,21 @@
 #include <stdio.h>
 #include "course_repository.h"
 
-#define MAIN_FILE_PATH "../courses.fl"
-#define INDEX_FILE_PATH "../courses.ind"
+#define COURSES_FILE_PATH "../courses.fl"
+#define COURSES_INDEX_FILE_PATH "../courses.ind"
 
 size_t get_file_size(char *path);
 
 int compare_index(const void *lhs, const void *rhs);
 
 struct Course *get_m(int course_id) {
-    FILE *index_file = fopen(INDEX_FILE_PATH, "r");
+    FILE *index_file = fopen(COURSES_INDEX_FILE_PATH, "r");
     if (index_file == 0) {
         printf("index file not found");
         return 0;
     }
 
-    size_t index_file_size = get_file_size(INDEX_FILE_PATH);
+    size_t index_file_size = get_file_size(COURSES_INDEX_FILE_PATH);
     size_t course_structure_size = sizeof(struct Course);
     size_t index_structure_size = sizeof(struct CourseIndex);
 
@@ -42,7 +42,7 @@ struct Course *get_m(int course_id) {
 
     long main_file_address = index->address;
 
-    FILE *main_file = fopen(MAIN_FILE_PATH, "r");
+    FILE *main_file = fopen(COURSES_FILE_PATH, "r");
     if (main_file == 0) {
         printf("main file not found");
         free(index_buffer);
@@ -70,13 +70,13 @@ int del_m(int course_id);
 int del_s(int course_id, int group_id);
 
 int update_m(struct Course course) {
-    FILE *index_file = fopen(INDEX_FILE_PATH, "r");
+    FILE *index_file = fopen(COURSES_INDEX_FILE_PATH, "r");
     if (index_file == 0) {
         printf("index file not found");
         return -1;
     }
 
-    size_t index_file_size = get_file_size(INDEX_FILE_PATH);
+    size_t index_file_size = get_file_size(COURSES_INDEX_FILE_PATH);
     size_t course_structure_size = sizeof(struct Course);
     size_t index_structure_size = sizeof(struct CourseIndex);
 
@@ -104,7 +104,7 @@ int update_m(struct Course course) {
 
     long main_file_address = index->address;
 
-    FILE *main_file = fopen(MAIN_FILE_PATH, "r+");
+    FILE *main_file = fopen(COURSES_FILE_PATH, "r+");
     if (main_file == 0) {
         printf("main file not found");
         free(index_buffer);
@@ -128,15 +128,15 @@ int update_m(struct Course course) {
 int update_s(int course_id, struct Group group);
 
 int insert_m(struct Course course) {
-    size_t main_file_size = get_file_size(MAIN_FILE_PATH);
+    size_t main_file_size = get_file_size(COURSES_FILE_PATH);
     struct CourseIndex index = {course.course_id, main_file_size};
 
-    FILE *index_file = fopen(INDEX_FILE_PATH, "r+");
+    FILE *index_file = fopen(COURSES_INDEX_FILE_PATH, "r+");
     if (index_file == 0) {
         return -1;
     }
 
-    size_t index_file_size = get_file_size(INDEX_FILE_PATH);
+    size_t index_file_size = get_file_size(COURSES_INDEX_FILE_PATH);
     size_t index_structure_size = sizeof(struct CourseIndex);
 
     size_t index_buffer_size = index_file_size + index_structure_size;
@@ -170,7 +170,7 @@ int insert_m(struct Course course) {
     free(index_buffer);
     fclose(index_file);
 
-    FILE *main_file = fopen(MAIN_FILE_PATH, "a");
+    FILE *main_file = fopen(COURSES_FILE_PATH, "a");
     if (main_file == 0) {
         printf("main file not found");
         return -1;
@@ -188,7 +188,7 @@ int insert_m(struct Course course) {
 int insert_s(int course_id, struct Group group);
 
 size_t size_m() {
-    return get_file_size(MAIN_FILE_PATH) / sizeof(struct Course);
+    return get_file_size(COURSES_FILE_PATH) / sizeof(struct Course);
 }
 
 size_t size_s(int course_id);
