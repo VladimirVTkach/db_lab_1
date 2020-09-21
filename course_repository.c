@@ -8,7 +8,60 @@ size_t get_file_size(char *path);
 
 int compare_index(const void *lhs, const void *rhs);
 
-struct Course *get_m(int course_id);
+struct Course* get_m(int course_id) {
+    FILE *index_file = fopen(INDEX_FILE_PATH, "r");
+    if (index_file == 0) {
+        printf("index file not found");
+        return 0;
+    }
+
+    size_t index_file_size = get_file_size(INDEX_FILE_PATH);
+    size_t course_structure_size = sizeof(struct Course);
+    size_t index_structure_size = sizeof(struct CourseIndex);
+
+    struct CourseIndex *index_buffer = malloc(index_file_size);
+    size_t index_items_read_cnt = fread(index_buffer, index_structure_size, index_file_size, index_file);
+    if (index_items_read_cnt < index_structure_size / index_file_size) {
+        printf("error while reading index file occurred");
+        free(index_buffer);
+        fclose(index_file);
+        return 0;
+    }
+    fclose(index_file);
+
+    struct CourseIndex key = {course_id, -1};
+    struct CourseIndex *index = bsearch(&key,
+                                        index_buffer,
+                                        index_file_size / index_structure_size,
+                                        index_structure_size,
+                                        compare_index);
+    if (index == 0) {
+        free(index_buffer);
+        return 0;
+    }
+
+    long main_file_address = index->address;
+
+    FILE *main_file = fopen(MAIN_FILE_PATH, "r");
+    if (main_file == 0) {
+        printf("main file not found");
+        free(index_buffer);
+        return 0;
+    }
+    fseek(main_file, main_file_address, SEEK_SET);
+
+    struct Course *course = malloc(course_structure_size);
+    size_t data_items_read_cnt = fread(course, course_structure_size, 1, main_file);
+    if (data_items_read_cnt != 1) {
+        printf("error while reading data occurred");
+        free(index_buffer);
+        fclose(main_file);
+        return 0;
+    }
+    free(index_buffer);
+    fclose(main_file);
+    return course;
+}
 
 struct Course *get_s(int course_id, int group_id);
 
