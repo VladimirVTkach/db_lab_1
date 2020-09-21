@@ -8,7 +8,7 @@ size_t get_file_size(char *path);
 
 int compare_index(const void *lhs, const void *rhs);
 
-struct Course* get_m(int course_id) {
+struct Course *get_m(int course_id) {
     FILE *index_file = fopen(INDEX_FILE_PATH, "r");
     if (index_file == 0) {
         printf("index file not found");
@@ -69,9 +69,63 @@ int del_m(int course_id);
 
 int del_s(int course_id, int group_id);
 
-int update_m(int course_id, struct Course course);
+int update_m(struct Course course) {
+    FILE *index_file = fopen(INDEX_FILE_PATH, "r");
+    if (index_file == 0) {
+        printf("index file not found");
+        return -1;
+    }
 
-int update_s(int course_id, int group_id, struct Group group);
+    size_t index_file_size = get_file_size(INDEX_FILE_PATH);
+    size_t course_structure_size = sizeof(struct Course);
+    size_t index_structure_size = sizeof(struct CourseIndex);
+
+    struct CourseIndex *index_buffer = malloc(index_file_size);
+    size_t index_items_read_cnt = fread(index_buffer, index_structure_size, index_file_size, index_file);
+    if (index_items_read_cnt < index_structure_size / index_file_size) {
+        printf("error while reading index file occurred");
+        free(index_buffer);
+        fclose(index_file);
+        return -1;
+    }
+    fclose(index_file);
+
+    struct CourseIndex key = {course.course_id, -1};
+    struct CourseIndex *index = bsearch(&key,
+                                        index_buffer,
+                                        index_file_size / index_structure_size,
+                                        index_structure_size,
+                                        compare_index);
+    if (index == 0) {
+        printf("course record you're trying to update doesn't exits");
+        free(index_buffer);
+        return -1;
+    }
+
+    long main_file_address = index->address;
+
+    FILE *main_file = fopen(MAIN_FILE_PATH, "r+");
+    if (main_file == 0) {
+        printf("main file not found");
+        free(index_buffer);
+        return -1;
+    }
+    fseek(main_file, main_file_address, SEEK_SET);
+
+    size_t written_course_items_cnt = fwrite(&course,
+                                             course_structure_size,
+                                             1,
+                                             main_file);
+    if (written_course_items_cnt != 1) {
+        printf("error while writing data occurred");
+        fclose(main_file);
+        return -1;
+    }
+    fclose(main_file);
+    return 0;
+}
+
+int update_s(int course_id, struct Group group);
 
 int insert_m(struct Course course) {
     size_t main_file_size = get_file_size(MAIN_FILE_PATH);
