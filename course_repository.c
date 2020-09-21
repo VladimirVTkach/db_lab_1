@@ -369,7 +369,7 @@ size_t count_m() {
     return get_file_size(COURSES_FILE_PATH) / sizeof(struct Course);
 }
 
-size_t count_s() {
+size_t count_all_s() {
     return get_file_size(GROUPS_FILE_PATH) / sizeof(struct Group);
 }
 
