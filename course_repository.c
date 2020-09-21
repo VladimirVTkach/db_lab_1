@@ -276,11 +276,11 @@ int insert_s(int course_id, struct Group group)  {
     return 0;
 }
 
-size_t size_m() {
+size_t count_m() {
     return get_file_size(COURSES_FILE_PATH) / sizeof(struct Course);
 }
 
-size_t size_s(int course_id);
+size_t count_s(int course_id);
 
 int ut_m();
 
