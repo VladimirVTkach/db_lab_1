@@ -3,6 +3,7 @@
 
 #define COURSES_FILE_PATH "../courses.fl"
 #define COURSES_INDEX_FILE_PATH "../courses.ind"
+#define GROUPS_FILE_PATH "../groups.fl"
 
 size_t get_file_size(char *path);
 
@@ -185,7 +186,95 @@ int insert_m(struct Course course) {
     return 0;
 }
 
-int insert_s(int course_id, struct Group group);
+int insert_s(int course_id, struct Group group)  {
+    FILE *courses_index_file = fopen(COURSES_INDEX_FILE_PATH, "r");
+    if (courses_index_file == 0) {
+        printf("index file not found");
+        return -1;
+    }
+
+    size_t index_file_size = get_file_size(COURSES_INDEX_FILE_PATH);
+    size_t course_structure_size = sizeof(struct Course);
+    size_t index_structure_size = sizeof(struct CourseIndex);
+
+    struct CourseIndex *index_buffer = malloc(index_file_size);
+    size_t index_items_read_cnt = fread(index_buffer, index_structure_size, index_file_size, courses_index_file);
+    if (index_items_read_cnt < index_structure_size / index_file_size) {
+        printf("error while reading index file occurred");
+        free(index_buffer);
+        fclose(courses_index_file);
+        return -1;
+    }
+    fclose(courses_index_file);
+
+    struct CourseIndex key = {course_id, -1};
+    struct CourseIndex *index = bsearch(&key,
+                                        index_buffer,
+                                        index_file_size / index_structure_size,
+                                        index_structure_size,
+                                        compare_index);
+    if (index == 0) {
+        printf("course record doesn't exits");
+        free(index_buffer);
+        return -1;
+    }
+
+    long main_file_address = index->address;
+    free(index_buffer);
+
+    FILE *courses_file = fopen(COURSES_FILE_PATH, "r+");
+    if (courses_file == 0) {
+        printf("main file not found");
+        return -1;
+    }
+    fseek(courses_file, main_file_address, SEEK_SET);
+
+    struct Course *course = malloc(course_structure_size);
+    size_t data_items_read_cnt = fread(course, course_structure_size, 1, courses_file);
+    if (data_items_read_cnt != 1) {
+        printf("error while reading courses file occurred");
+        fclose(courses_file);
+        free(course);
+        return -1;
+    }
+
+    FILE *groups_file = fopen(GROUPS_FILE_PATH, "a");
+    if (groups_file == 0) {
+        printf("groups file not found");
+        fclose(courses_file);
+        free(course);
+        return -1;
+    }
+
+    size_t groups_file_size = get_file_size(GROUPS_FILE_PATH);
+    size_t group_structure_size = sizeof(struct Group);
+
+    group.next_group_address = course->group_address;
+
+    size_t written_group_items_cn = fwrite(&group, group_structure_size, 1, groups_file);
+    if(written_group_items_cn != 1) {
+        printf("error while writing to groups file occurred");
+        fclose(groups_file);
+        fclose(courses_file);
+        free(course);
+        return -1;
+    }
+    fclose(groups_file);
+
+    course->group_address = groups_file_size;
+    fseek(courses_file, main_file_address, SEEK_SET);
+
+    size_t written_course_items_cn = fwrite(course, course_structure_size, 1, courses_file);
+    if(written_course_items_cn != 1) {
+        printf("error while writing data occurred");
+        fclose(courses_file);
+        free(course);
+        return -1;
+    }
+    fclose(courses_file);
+    free(course);
+    return 0;
+}
 
 size_t size_m() {
     return get_file_size(COURSES_FILE_PATH) / sizeof(struct Course);
