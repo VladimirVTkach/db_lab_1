@@ -157,7 +157,14 @@ struct Group *get_s(int course_id, int group_id) {
 
 int del_m(int course_id);
 
-int del_s(int course_id, int group_id);
+int del_s(int course_id, int group_id) {
+    struct Group *group = get_s(course_id, group_id);
+    if (group != 0) {
+        group->is_deleted = 1;
+        return insert_s(course_id, *group);
+    }
+    return -1;
+}
 
 int update_m(struct Course course) {
     FILE *index_file = fopen(COURSES_INDEX_FILE_PATH, "r");
