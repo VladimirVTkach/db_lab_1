@@ -61,6 +61,11 @@ struct Course *get_m(int course_id) {
         return 0;
     }
 
+    if (course->is_deleted == 1) {
+        fclose(main_file);
+        return 0;
+    }
+
     fclose(main_file);
     return course;
 }
