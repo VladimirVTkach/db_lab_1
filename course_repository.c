@@ -143,7 +143,7 @@ int update_m(struct Course course) {
     struct Course *previous_val = get_m(course.course_id);
 
     if (previous_val == 0) {
-        printf("course with such id already deleted");
+        printf("course with such id doesn't exits");
         return -1;
     } else if (previous_val->group_address != course.group_address) {
         printf("group addresses mismatch");
@@ -206,70 +206,22 @@ int update_m(struct Course course) {
 }
 
 int update_s(int course_id, struct Group group) {
-    FILE *courses_index_file = fopen(COURSES_INDEX_FILE_PATH, "r");
-    if (courses_index_file == 0) {
-        printf("index file not found");
+    struct Course *course = get_m(course_id);
+
+    if (course == 0) {
+        printf("course with such id doesn't exits");
         return -1;
     }
 
-    size_t index_file_size = get_file_size(COURSES_INDEX_FILE_PATH);
-    size_t course_structure_size = sizeof(struct Course);
-    size_t index_structure_size = sizeof(struct CourseIndex);
+    size_t group_structure_size = sizeof(struct Group);
 
-    struct CourseIndex *index_buffer = malloc(index_file_size);
-    size_t index_items_read_cnt = fread(index_buffer, index_structure_size, index_file_size, courses_index_file);
-    if (index_items_read_cnt < index_structure_size / index_file_size) {
-        printf("error while reading index file occurred");
-        free(index_buffer);
-        fclose(courses_index_file);
-        return -1;
-    }
-    fclose(courses_index_file);
-
-    struct CourseIndex key = {course_id, -1};
-    struct CourseIndex *index = bsearch(&key,
-                                        index_buffer,
-                                        index_file_size / index_structure_size,
-                                        index_structure_size,
-                                        compare_index);
-    if (index == 0) {
-        printf("course record doesn't exits");
-        free(index_buffer);
-        return -1;
-    }
-
-    long main_file_address = index->address;
-    free(index_buffer);
-
-    FILE *courses_file = fopen(COURSES_FILE_PATH, "r");
-    if (courses_file == 0) {
-        printf("main file not found");
-        return -1;
-    }
-    fseek(courses_file, main_file_address, SEEK_SET);
-
-    struct Course *course = malloc(course_structure_size);
-    size_t data_items_read_cnt = fread(course, course_structure_size, 1, courses_file);
-    if (data_items_read_cnt != 1) {
-        printf("error while reading courses file occurred");
-        fclose(courses_file);
-        free(course);
-        return -1;
-    }
+    int group_address = course->group_address;
 
     FILE *groups_file = fopen(GROUPS_FILE_PATH, "r+");
     if (groups_file == 0) {
         printf("groups file not found");
-        fclose(courses_file);
-        free(course);
-        return -1;
+        return 0;
     }
-
-    size_t groups_file_size = get_file_size(GROUPS_FILE_PATH);
-    size_t group_structure_size = sizeof(struct Group);
-
-    int group_address = course->group_address;
-    free(course);
 
     struct Group *found_group = malloc(group_structure_size);
     while (group_address != -1) {
@@ -278,19 +230,21 @@ int update_s(int course_id, struct Group group) {
         if (group_items_read_cnt != 1) {
             printf("error while reading groups file occurred");
             fclose(groups_file);
+            free(found_group);
             return -1;
         }
 
-        if (found_group->group_id == group.group_id) {
-            group.next_group_address = found_group->next_group_address;
-
+        if (found_group->group_id == group.group_id && found_group->is_deleted == 0) {
             fseek(groups_file, group_address, SEEK_SET);
 
-            size_t written_groups_items_cnt = fwrite(&group, group_structure_size, 1, groups_file);
-            if (written_groups_items_cnt != 1) {
-                printf("error while writing to groups file occurred");
+            size_t written_group_items_cnt = fwrite(&group,
+                                                    group_structure_size,
+                                                    1,
+                                                    groups_file);
+            if (written_group_items_cnt != 1) {
+                printf("error while writing data occurred");
                 fclose(groups_file);
-                free(groups_file);
+                free(found_group);
                 return -1;
             }
 
@@ -298,30 +252,32 @@ int update_s(int course_id, struct Group group) {
             free(found_group);
             return 0;
         }
+
         group_address = found_group->next_group_address;
     }
 
-    if (found_group->group_id != group.group_id) {
-        printf("group record you're trying to update doesn't exits");
-        fclose(groups_file);
-        free(found_group);
-        return -1;
-    } else {
-        group.next_group_address = found_group->next_group_address;
-
+    if (found_group->group_id == group.group_id && found_group->is_deleted == 0) {
         fseek(groups_file, group_address, SEEK_SET);
 
-        size_t written_groups_items_cnt = fwrite(&group, group_structure_size, 1, groups_file);
-        if (written_groups_items_cnt != 1) {
-            printf("error while writing to groups file occurred");
+        size_t written_group_items_cnt = fwrite(&group,
+                                                group_structure_size,
+                                                1,
+                                                groups_file);
+        if (written_group_items_cnt != 1) {
+            printf("error while writing data occurred");
             fclose(groups_file);
-            free(groups_file);
+            free(found_group);
             return -1;
         }
 
         fclose(groups_file);
         free(found_group);
         return 0;
+    } else {
+        printf("group with such id doesn't exits");
+        fclose(groups_file);
+        free(found_group);
+        return -1;
     }
 }
 
