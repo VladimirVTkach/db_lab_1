@@ -231,7 +231,6 @@ int update_s(int course_id, struct Group group) {
 
     FILE *groups_file = fopen(GROUPS_FILE_PATH, "r+");
     if (groups_file == 0) {
-        printf("groups file not found");
         return 0;
     }
 
@@ -254,7 +253,7 @@ int update_s(int course_id, struct Group group) {
                                                     1,
                                                     groups_file);
             if (written_group_items_cnt != 1) {
-                printf("error while writing data occurred");
+                printf("error while writing to groups file occurred");
                 fclose(groups_file);
                 free(found_group);
                 return -1;
@@ -276,7 +275,7 @@ int update_s(int course_id, struct Group group) {
                                                 1,
                                                 groups_file);
         if (written_group_items_cnt != 1) {
-            printf("error while writing data occurred");
+            printf("error while writing to groups file occurred");
             fclose(groups_file);
             free(found_group);
             return -1;
