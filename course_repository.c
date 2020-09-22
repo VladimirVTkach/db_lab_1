@@ -411,7 +411,25 @@ size_t count_m() {
 }
 
 size_t count_all_s() {
-    return get_file_size(GROUPS_FILE_PATH) / sizeof(struct Group);
+    FILE *main_file = fopen(COURSES_FILE_PATH, "r");
+    if (main_file == 0) {
+        printf("main file not found");
+        return 0;
+    }
+
+    int course_structure_size = sizeof(struct Course);
+
+    struct Course *course = malloc(course_structure_size);
+
+    int items_cnt = 0;
+    while (fread(course, course_structure_size, 1, main_file) == 1) {
+        if (course->is_deleted == 0) {
+            items_cnt += count_s(course->course_id);
+        }
+    }
+    fclose(main_file);
+    free(course);
+    return items_cnt;
 }
 
 size_t count_s(int course_id) {
