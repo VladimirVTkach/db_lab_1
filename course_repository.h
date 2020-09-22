@@ -20,5 +20,3 @@ int insert_s(int course_id, struct Group group);
 size_t count_m();
 size_t count_all_s();
 size_t count_s(int course_id);
-int ut_m();
-int ut_s();

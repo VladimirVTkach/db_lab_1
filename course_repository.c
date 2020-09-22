@@ -429,10 +429,6 @@ size_t count_s(int course_id) {
     return groups_cnt;
 }
 
-int ut_m();
-
-int ut_s();
-
 size_t get_file_size(char *path) {
     FILE *file = fopen(path, "r");
     if (file == 0) {
