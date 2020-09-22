@@ -424,8 +424,13 @@ size_t count_s(int course_id) {
             return -1;
         }
         group_address = group->next_group_address;
-        groups_cnt++;
+        if (group->is_deleted == 0) {
+            groups_cnt++;
+        }
     }
+
+    fclose(groups_file);
+    free(group);
     return groups_cnt;
 }
 
