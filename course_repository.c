@@ -40,26 +40,27 @@ struct Course *get_m(int course_id) {
         free(index_buffer);
         return 0;
     }
+    free(index_buffer);
 
     long main_file_address = index->address;
 
     FILE *main_file = fopen(COURSES_FILE_PATH, "r");
     if (main_file == 0) {
         printf("main file not found");
-        free(index_buffer);
         return 0;
     }
+
     fseek(main_file, main_file_address, SEEK_SET);
 
     struct Course *course = malloc(course_structure_size);
     size_t data_items_read_cnt = fread(course, course_structure_size, 1, main_file);
     if (data_items_read_cnt != 1) {
         printf("error while reading data occurred");
-        free(index_buffer);
         fclose(main_file);
+        free(course);
         return 0;
     }
-    free(index_buffer);
+
     fclose(main_file);
     return course;
 }
