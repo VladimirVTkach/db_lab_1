@@ -164,31 +164,30 @@ int update_m(struct Course course) {
         return -1;
     }
 
-    FILE *index_file = fopen(COURSES_INDEX_FILE_PATH, "r");
-    if (index_file == 0) {
-        printf("index file not found");
+    FILE *courses_index_file = fopen(COURSES_INDEX_FILE_PATH, "r");
+    if (courses_index_file == 0) {
         return -1;
     }
 
-    size_t index_file_size = get_file_size(COURSES_INDEX_FILE_PATH);
+    size_t courses_index_file_size = get_file_size(COURSES_INDEX_FILE_PATH);
     size_t course_structure_size = sizeof(struct Course);
-    size_t index_structure_size = sizeof(struct CourseIndex);
+    size_t course_index_structure_size = sizeof(struct CourseIndex);
 
-    struct CourseIndex *index_buffer = malloc(index_file_size);
-    size_t index_items_read_cnt = fread(index_buffer, index_structure_size, index_file_size, index_file);
-    if (index_items_read_cnt < index_structure_size / index_file_size) {
-        printf("error while reading index file occurred");
+    struct CourseIndex *index_buffer = malloc(courses_index_file_size);
+    size_t index_items_read_cnt = fread(index_buffer, course_index_structure_size, courses_index_file_size, courses_index_file);
+    if (index_items_read_cnt < course_index_structure_size / courses_index_file_size) {
+        printf("error while reading courses index file occurred");
         free(index_buffer);
-        fclose(index_file);
+        fclose(courses_index_file);
         return -1;
     }
-    fclose(index_file);
+    fclose(courses_index_file);
 
     struct CourseIndex key = {course.course_id, -1};
     struct CourseIndex *index = bsearch(&key,
                                         index_buffer,
-                                        index_file_size / index_structure_size,
-                                        index_structure_size,
+                                        courses_index_file_size / course_index_structure_size,
+                                        course_index_structure_size,
                                         compare_index);
     if (index == 0) {
         printf("course record you're trying to update doesn't exits");
@@ -196,26 +195,25 @@ int update_m(struct Course course) {
         return -1;
     }
 
-    long main_file_address = index->address;
+    long courses_file_address = index->address;
     free(index_buffer);
 
-    FILE *main_file = fopen(COURSES_FILE_PATH, "r+");
-    if (main_file == 0) {
-        printf("main file not found");
+    FILE *courses_file = fopen(COURSES_FILE_PATH, "r+");
+    if (courses_file == 0) {
         return -1;
     }
-    fseek(main_file, main_file_address, SEEK_SET);
+    fseek(courses_file, courses_file_address, SEEK_SET);
 
     size_t written_course_items_cnt = fwrite(&course,
                                              course_structure_size,
                                              1,
-                                             main_file);
+                                             courses_file);
     if (written_course_items_cnt != 1) {
-        printf("error while writing data occurred");
-        fclose(main_file);
+        printf("error while writing to courses file occurred");
+        fclose(courses_file);
         return -1;
     }
-    fclose(main_file);
+    fclose(courses_file);
     return 0;
 }
 
