@@ -125,7 +125,7 @@ int del_m(int course_id) {
             group = get_s(course_id, group->next_group_address);
         }
 
-        return 0;
+        return update_m(*course);
     }
     return -1;
 }
