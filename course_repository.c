@@ -293,60 +293,59 @@ int update_s(int course_id, struct Group group) {
 }
 
 int insert_m(struct Course course) {
-    size_t main_file_size = get_file_size(COURSES_FILE_PATH);
-    struct CourseIndex index = {course.course_id, main_file_size};
+    size_t courses_file_size = get_file_size(COURSES_FILE_PATH);
+    struct CourseIndex index = {course.course_id, courses_file_size};
 
-    FILE *index_file = fopen(COURSES_INDEX_FILE_PATH, "r+");
-    if (index_file == 0) {
+    FILE *courses_index_file = fopen(COURSES_INDEX_FILE_PATH, "r+");
+    if (courses_index_file == 0) {
         return -1;
     }
 
-    size_t index_file_size = get_file_size(COURSES_INDEX_FILE_PATH);
-    size_t index_structure_size = sizeof(struct CourseIndex);
+    size_t courses_index_file_size = get_file_size(COURSES_INDEX_FILE_PATH);
+    size_t courses_index_structure_size = sizeof(struct CourseIndex);
 
-    size_t index_buffer_size = index_file_size + index_structure_size;
+    size_t index_buffer_size = courses_index_file_size + courses_index_structure_size;
     struct CourseIndex *index_buffer = malloc(index_buffer_size);
     size_t index_items_read_cnt = fread(index_buffer,
-                                        index_structure_size,
-                                        index_file_size / index_structure_size,
-                                        index_file);
-    if (index_items_read_cnt < index_file_size / index_structure_size) {
-        printf("error while reading index file occurred");
+                                        courses_index_structure_size,
+                                        courses_index_file_size / courses_index_structure_size,
+                                        courses_index_file);
+    if (index_items_read_cnt < courses_index_file_size / courses_index_structure_size) {
+        printf("error while reading courses index file occurred");
         free(index_buffer);
-        fclose(index_file);
+        fclose(courses_index_file);
         return -1;
     }
-    *(index_buffer + index_file_size / index_structure_size) = index;
+    *(index_buffer + courses_index_file_size / courses_index_structure_size) = index;
     qsort(index_buffer,
-          index_buffer_size / index_structure_size,
-          index_structure_size,
+          index_buffer_size / courses_index_structure_size,
+          courses_index_structure_size,
           compare_index);
 
     size_t written_index_items_cnt = fwrite(index_buffer,
-                                            index_structure_size,
-                                            index_buffer_size / index_structure_size,
-                                            index_file);
-    if (written_index_items_cnt < index_buffer_size / index_structure_size) {
-        printf("error while writing index occurred");
+                                            courses_index_structure_size,
+                                            index_buffer_size / courses_index_structure_size,
+                                            courses_index_file);
+    if (written_index_items_cnt < index_buffer_size / courses_index_structure_size) {
+        printf("error while writing to courses index file occurred");
         free(index_buffer);
-        fclose(index_file);
+        fclose(courses_index_file);
         return -1;
     }
     free(index_buffer);
-    fclose(index_file);
+    fclose(courses_index_file);
 
-    FILE *main_file = fopen(COURSES_FILE_PATH, "a");
-    if (main_file == 0) {
-        printf("main file not found");
+    FILE *courses_file = fopen(COURSES_FILE_PATH, "a");
+    if (courses_file == 0) {
         return -1;
     }
-    size_t written_data_items_cnt = fwrite(&course, sizeof(course), 1, main_file);
+    size_t written_data_items_cnt = fwrite(&course, sizeof(course), 1, courses_file);
     if (written_data_items_cnt != 1) {
-        printf("error while writing data occurred");
-        fclose(main_file);
+        printf("error while writing to courses file occurred");
+        fclose(courses_file);
         return -1;
     }
-    fclose(main_file);
+    fclose(courses_file);
     return 0;
 }
 
@@ -360,7 +359,6 @@ int insert_s(int course_id, struct Group group) {
 
     FILE *groups_file = fopen(GROUPS_FILE_PATH, "a");
     if (groups_file == 0) {
-        printf("groups file not found");
         return -1;
     }
 
@@ -382,9 +380,8 @@ int insert_s(int course_id, struct Group group) {
 }
 
 size_t count_m() {
-    FILE *main_file = fopen(COURSES_FILE_PATH, "r");
-    if (main_file == 0) {
-        printf("main file not found");
+    FILE *courses_file = fopen(COURSES_FILE_PATH, "r");
+    if (courses_file == 0) {
         return 0;
     }
 
@@ -393,20 +390,19 @@ size_t count_m() {
     struct Course *course = malloc(course_structure_size);
 
     int items_cnt = 0;
-    while (fread(course, course_structure_size, 1, main_file) == 1) {
+    while (fread(course, course_structure_size, 1, courses_file) == 1) {
         if (course->is_deleted == 0) {
             items_cnt++;
         }
     }
-    fclose(main_file);
+    fclose(courses_file);
     free(course);
     return items_cnt;
 }
 
 size_t count_all_s() {
-    FILE *main_file = fopen(COURSES_FILE_PATH, "r");
-    if (main_file == 0) {
-        printf("main file not found");
+    FILE *courses_file = fopen(COURSES_FILE_PATH, "r");
+    if (courses_file == 0) {
         return 0;
     }
 
@@ -415,12 +411,12 @@ size_t count_all_s() {
     struct Course *course = malloc(course_structure_size);
 
     int items_cnt = 0;
-    while (fread(course, course_structure_size, 1, main_file) == 1) {
+    while (fread(course, course_structure_size, 1, courses_file) == 1) {
         if (course->is_deleted == 0) {
             items_cnt += count_s(course->course_id);
         }
     }
-    fclose(main_file);
+    fclose(courses_file);
     free(course);
     return items_cnt;
 }
@@ -439,7 +435,6 @@ size_t count_s(int course_id) {
 
     FILE *groups_file = fopen(GROUPS_FILE_PATH, "r");
     if (groups_file == 0) {
-        printf("groups file not found");
         return -1;
     }
 
@@ -468,7 +463,6 @@ size_t count_s(int course_id) {
 size_t get_file_size(char *path) {
     FILE *file = fopen(path, "r");
     if (file == 0) {
-        printf("file not found");
         return -1;
     }
     fseek(file, 0L, SEEK_END);
