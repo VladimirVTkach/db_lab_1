@@ -156,7 +156,21 @@ struct Group *get_s(int course_id, int group_id) {
     }
 }
 
-int del_m(int course_id);
+int del_m(int course_id) {
+    struct Course *course = get_m(course_id);
+    if (course != 0) {
+        course->is_deleted = 1;
+
+        struct Group *group = get_s(course_id, course->group_address);
+        while (group != 0) {
+            del_s(course_id, group->group_id);
+            group = get_s(course_id, group->next_group_address);
+        }
+
+        return 0;
+    }
+    return -1;
+}
 
 int del_s(int course_id, int group_id) {
     struct Group *group = get_s(course_id, group_id);
