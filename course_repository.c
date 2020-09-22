@@ -140,6 +140,16 @@ int del_s(int course_id, int group_id) {
 }
 
 int update_m(struct Course course) {
+    struct Course *previous_val = get_m(course.course_id);
+
+    if (previous_val == 0) {
+        printf("course with such id already deleted");
+        return -1;
+    } else if (previous_val->group_address != course.group_address) {
+        printf("group addresses mismatch");
+        return -1;
+    }
+
     FILE *index_file = fopen(COURSES_INDEX_FILE_PATH, "r");
     if (index_file == 0) {
         printf("index file not found");
