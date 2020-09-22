@@ -441,7 +441,9 @@ size_t get_file_size(char *path) {
         return -1;
     }
     fseek(file, 0L, SEEK_END);
-    return ftell(file);
+    size_t size = ftell(file);
+    fclose(file);
+    return size;
 }
 
 int compare_index(const void *lhs, const void *rhs) {
