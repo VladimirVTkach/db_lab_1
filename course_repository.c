@@ -394,7 +394,40 @@ size_t count_all_s() {
     return get_file_size(GROUPS_FILE_PATH) / sizeof(struct Group);
 }
 
-size_t count_s(int course_id);
+size_t count_s(int course_id) {
+    struct Course *course = get_m(course_id);
+
+    if (course == 0) {
+        printf("course with such id already deleted");
+        return -1;
+    }
+    size_t group_structure_size = sizeof(struct Group);
+
+    int group_address = course->group_address;
+    free(course);
+
+    FILE *groups_file = fopen(GROUPS_FILE_PATH, "r");
+    if (groups_file == 0) {
+        printf("groups file not found");
+        return -1;
+    }
+
+    int groups_cnt = 0;
+    struct Group *group = malloc(group_structure_size);
+    while (group_address != -1) {
+        fseek(groups_file, group_address, SEEK_SET);
+        size_t group_items_read_cnt = fread(group, group_structure_size, 1, groups_file);
+        if (group_items_read_cnt != 1) {
+            printf("error while reading groups file occurred");
+            fclose(groups_file);
+            free(group);
+            return -1;
+        }
+        group_address = group->next_group_address;
+        groups_cnt++;
+    }
+    return groups_cnt;
+}
 
 int ut_m();
 
