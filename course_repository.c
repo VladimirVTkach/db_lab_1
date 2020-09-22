@@ -79,7 +79,6 @@ struct Group *get_s(int course_id, int group_id) {
 
         FILE *groups_file = fopen(GROUPS_FILE_PATH, "r+");
         if (groups_file == 0) {
-            printf("groups file not found");
             return 0;
         }
 
