@@ -146,7 +146,9 @@ int del_m(int course_id) {
         del_s(course_id, group->group_id);
         group_address = group->next_group_address;
     }
-    return 0;
+
+    course->is_deleted = 1;
+    return update_m(*course);
 }
 
 int del_s(int course_id, int group_id) {
@@ -387,7 +389,25 @@ int insert_s(int course_id, struct Group group) {
 }
 
 size_t count_m() {
-    return get_file_size(COURSES_FILE_PATH) / sizeof(struct Course);
+    FILE *main_file = fopen(COURSES_FILE_PATH, "r");
+    if (main_file == 0) {
+        printf("main file not found");
+        return 0;
+    }
+
+    int course_structure_size = sizeof(struct Course);
+
+    struct Course *course = malloc(course_structure_size);
+
+    int items_cnt = 0;
+    while (fread(course, course_structure_size, 1, main_file) == 1) {
+        if (course->is_deleted == 0) {
+            items_cnt++;
+        }
+    }
+    fclose(main_file);
+    free(course);
+    return items_cnt;
 }
 
 size_t count_all_s() {
