@@ -162,7 +162,7 @@ int del_s(int course_id, int group_id) {
     struct Group *group = get_s(course_id, group_id);
     if (group != 0) {
         group->is_deleted = 1;
-        return insert_s(course_id, *group);
+        return update_s(course_id, *group);
     }
     return -1;
 }
