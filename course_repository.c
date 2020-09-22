@@ -5,6 +5,10 @@
 #define COURSES_INDEX_FILE_PATH "../courses.ind"
 #define GROUPS_FILE_PATH "../groups.fl"
 
+size_t COURSES_STRUCTURE_SIZE = sizeof(struct Course);
+size_t COURSES_INDEX_STRUCTURE_SIZE = sizeof(struct CourseIndex);
+size_t GROUP_STRUCTURE_SIZE = sizeof(struct Group);
+
 size_t get_file_size(char *path);
 
 int compare_index(const void *lhs, const void *rhs);
@@ -16,12 +20,11 @@ struct Course *get_m(int course_id) {
     }
 
     size_t courses_index_file_size = get_file_size(COURSES_INDEX_FILE_PATH);
-    size_t course_structure_size = sizeof(struct Course);
-    size_t course_index_structure_size = sizeof(struct CourseIndex);
 
     struct CourseIndex *index_buffer = malloc(courses_index_file_size);
-    size_t index_items_read_cnt = fread(index_buffer, course_index_structure_size, courses_index_file_size, courses_index_file);
-    if (index_items_read_cnt < course_index_structure_size / courses_index_file_size) {
+    size_t index_items_read_cnt = fread(index_buffer, COURSES_INDEX_STRUCTURE_SIZE, courses_index_file_size,
+                                        courses_index_file);
+    if (index_items_read_cnt < COURSES_INDEX_STRUCTURE_SIZE / courses_index_file_size) {
         printf("error while reading courses index file occurred");
         free(index_buffer);
         fclose(courses_index_file);
@@ -32,8 +35,8 @@ struct Course *get_m(int course_id) {
     struct CourseIndex key = {course_id, -1};
     struct CourseIndex *index = bsearch(&key,
                                         index_buffer,
-                                        courses_index_file_size / course_index_structure_size,
-                                        course_index_structure_size,
+                                        courses_index_file_size / COURSES_INDEX_STRUCTURE_SIZE,
+                                        COURSES_INDEX_STRUCTURE_SIZE,
                                         compare_index);
     if (index == 0) {
         free(index_buffer);
@@ -50,8 +53,8 @@ struct Course *get_m(int course_id) {
 
     fseek(courses_file, courses_file_address, SEEK_SET);
 
-    struct Course *course = malloc(course_structure_size);
-    size_t data_items_read_cnt = fread(course, course_structure_size, 1, courses_file);
+    struct Course *course = malloc(COURSES_STRUCTURE_SIZE);
+    size_t data_items_read_cnt = fread(course, COURSES_STRUCTURE_SIZE, 1, courses_file);
     if (data_items_read_cnt != 1) {
         printf("error while reading courses file occurred");
         fclose(courses_file);
@@ -72,8 +75,6 @@ struct Group *get_s(int course_id, int group_id) {
     struct Course *course = get_m(course_id);
 
     if (course != 0) {
-        size_t group_structure_size = sizeof(struct Group);
-
         int group_address = course->group_address;
         free(course);
 
@@ -82,10 +83,10 @@ struct Group *get_s(int course_id, int group_id) {
             return 0;
         }
 
-        struct Group *group = malloc(group_structure_size);
+        struct Group *group = malloc(GROUP_STRUCTURE_SIZE);
         while (group_address != -1) {
             fseek(groups_file, group_address, SEEK_SET);
-            size_t group_items_read_cnt = fread(group, group_structure_size, 1, groups_file);
+            size_t group_items_read_cnt = fread(group, GROUP_STRUCTURE_SIZE, 1, groups_file);
             if (group_items_read_cnt != 1) {
                 printf("error while reading groups file occurred");
                 fclose(groups_file);
@@ -118,8 +119,6 @@ int del_m(int course_id) {
         printf("course with such id already deleted");
         return -1;
     }
-    size_t group_structure_size = sizeof(struct Group);
-
     int group_address = course->group_address;
     free(course);
 
@@ -128,10 +127,10 @@ int del_m(int course_id) {
         return -1;
     }
 
-    struct Group *group = malloc(group_structure_size);
+    struct Group *group = malloc(GROUP_STRUCTURE_SIZE);
     while (group_address != -1) {
         fseek(groups_file, group_address, SEEK_SET);
-        size_t group_items_read_cnt = fread(group, group_structure_size, 1, groups_file);
+        size_t group_items_read_cnt = fread(group, GROUP_STRUCTURE_SIZE, 1, groups_file);
         if (group_items_read_cnt != 1) {
             printf("error while reading groups file occurred");
             fclose(groups_file);
@@ -170,12 +169,11 @@ int update_m(struct Course course) {
     }
 
     size_t courses_index_file_size = get_file_size(COURSES_INDEX_FILE_PATH);
-    size_t course_structure_size = sizeof(struct Course);
-    size_t course_index_structure_size = sizeof(struct CourseIndex);
 
     struct CourseIndex *index_buffer = malloc(courses_index_file_size);
-    size_t index_items_read_cnt = fread(index_buffer, course_index_structure_size, courses_index_file_size, courses_index_file);
-    if (index_items_read_cnt < course_index_structure_size / courses_index_file_size) {
+    size_t index_items_read_cnt = fread(index_buffer, COURSES_INDEX_STRUCTURE_SIZE, courses_index_file_size,
+                                        courses_index_file);
+    if (index_items_read_cnt < COURSES_INDEX_STRUCTURE_SIZE / courses_index_file_size) {
         printf("error while reading courses index file occurred");
         free(index_buffer);
         fclose(courses_index_file);
@@ -186,8 +184,8 @@ int update_m(struct Course course) {
     struct CourseIndex key = {course.course_id, -1};
     struct CourseIndex *index = bsearch(&key,
                                         index_buffer,
-                                        courses_index_file_size / course_index_structure_size,
-                                        course_index_structure_size,
+                                        courses_index_file_size / COURSES_INDEX_STRUCTURE_SIZE,
+                                        COURSES_INDEX_STRUCTURE_SIZE,
                                         compare_index);
     if (index == 0) {
         printf("course record you're trying to update doesn't exits");
@@ -205,7 +203,7 @@ int update_m(struct Course course) {
     fseek(courses_file, courses_file_address, SEEK_SET);
 
     size_t written_course_items_cnt = fwrite(&course,
-                                             course_structure_size,
+                                             COURSES_STRUCTURE_SIZE,
                                              1,
                                              courses_file);
     if (written_course_items_cnt != 1) {
@@ -224,9 +222,6 @@ int update_s(int course_id, struct Group group) {
         printf("course with such id doesn't exits");
         return -1;
     }
-
-    size_t group_structure_size = sizeof(struct Group);
-
     int group_address = course->group_address;
 
     FILE *groups_file = fopen(GROUPS_FILE_PATH, "r+");
@@ -234,10 +229,10 @@ int update_s(int course_id, struct Group group) {
         return 0;
     }
 
-    struct Group *found_group = malloc(group_structure_size);
+    struct Group *found_group = malloc(GROUP_STRUCTURE_SIZE);
     while (group_address != -1) {
         fseek(groups_file, group_address, SEEK_SET);
-        size_t group_items_read_cnt = fread(found_group, group_structure_size, 1, groups_file);
+        size_t group_items_read_cnt = fread(found_group, GROUP_STRUCTURE_SIZE, 1, groups_file);
         if (group_items_read_cnt != 1) {
             printf("error while reading groups file occurred");
             fclose(groups_file);
@@ -249,7 +244,7 @@ int update_s(int course_id, struct Group group) {
             fseek(groups_file, group_address, SEEK_SET);
 
             size_t written_group_items_cnt = fwrite(&group,
-                                                    group_structure_size,
+                                                    GROUP_STRUCTURE_SIZE,
                                                     1,
                                                     groups_file);
             if (written_group_items_cnt != 1) {
@@ -271,7 +266,7 @@ int update_s(int course_id, struct Group group) {
         fseek(groups_file, group_address, SEEK_SET);
 
         size_t written_group_items_cnt = fwrite(&group,
-                                                group_structure_size,
+                                                GROUP_STRUCTURE_SIZE,
                                                 1,
                                                 groups_file);
         if (written_group_items_cnt != 1) {
@@ -302,31 +297,30 @@ int insert_m(struct Course course) {
     }
 
     size_t courses_index_file_size = get_file_size(COURSES_INDEX_FILE_PATH);
-    size_t courses_index_structure_size = sizeof(struct CourseIndex);
 
-    size_t index_buffer_size = courses_index_file_size + courses_index_structure_size;
+    size_t index_buffer_size = courses_index_file_size + COURSES_INDEX_STRUCTURE_SIZE;
     struct CourseIndex *index_buffer = malloc(index_buffer_size);
     size_t index_items_read_cnt = fread(index_buffer,
-                                        courses_index_structure_size,
-                                        courses_index_file_size / courses_index_structure_size,
+                                        COURSES_INDEX_STRUCTURE_SIZE,
+                                        courses_index_file_size / COURSES_INDEX_STRUCTURE_SIZE,
                                         courses_index_file);
-    if (index_items_read_cnt < courses_index_file_size / courses_index_structure_size) {
+    if (index_items_read_cnt < courses_index_file_size / COURSES_INDEX_STRUCTURE_SIZE) {
         printf("error while reading courses index file occurred");
         free(index_buffer);
         fclose(courses_index_file);
         return -1;
     }
-    *(index_buffer + courses_index_file_size / courses_index_structure_size) = index;
+    *(index_buffer + courses_index_file_size / COURSES_INDEX_STRUCTURE_SIZE) = index;
     qsort(index_buffer,
-          index_buffer_size / courses_index_structure_size,
-          courses_index_structure_size,
+          index_buffer_size / COURSES_INDEX_STRUCTURE_SIZE,
+          COURSES_INDEX_STRUCTURE_SIZE,
           compare_index);
 
     size_t written_index_items_cnt = fwrite(index_buffer,
-                                            courses_index_structure_size,
-                                            index_buffer_size / courses_index_structure_size,
+                                            COURSES_INDEX_STRUCTURE_SIZE,
+                                            index_buffer_size / COURSES_INDEX_STRUCTURE_SIZE,
                                             courses_index_file);
-    if (written_index_items_cnt < index_buffer_size / courses_index_structure_size) {
+    if (written_index_items_cnt < index_buffer_size / COURSES_INDEX_STRUCTURE_SIZE) {
         printf("error while writing to courses index file occurred");
         free(index_buffer);
         fclose(courses_index_file);
@@ -339,7 +333,7 @@ int insert_m(struct Course course) {
     if (courses_file == 0) {
         return -1;
     }
-    size_t written_data_items_cnt = fwrite(&course, sizeof(course), 1, courses_file);
+    size_t written_data_items_cnt = fwrite(&course, COURSES_STRUCTURE_SIZE, 1, courses_file);
     if (written_data_items_cnt != 1) {
         printf("error while writing to courses file occurred");
         fclose(courses_file);
@@ -363,11 +357,10 @@ int insert_s(int course_id, struct Group group) {
     }
 
     size_t groups_file_size = get_file_size(GROUPS_FILE_PATH);
-    size_t group_structure_size = sizeof(struct Group);
 
     group.next_group_address = course->group_address;
 
-    size_t written_group_items_cn = fwrite(&group, group_structure_size, 1, groups_file);
+    size_t written_group_items_cn = fwrite(&group, GROUP_STRUCTURE_SIZE, 1, groups_file);
     if (written_group_items_cn != 1) {
         printf("error while writing to groups file occurred");
         fclose(groups_file);
@@ -384,13 +377,10 @@ size_t count_m() {
     if (courses_file == 0) {
         return 0;
     }
-
-    int course_structure_size = sizeof(struct Course);
-
-    struct Course *course = malloc(course_structure_size);
+    struct Course *course = malloc(COURSES_STRUCTURE_SIZE);
 
     int items_cnt = 0;
-    while (fread(course, course_structure_size, 1, courses_file) == 1) {
+    while (fread(course, COURSES_STRUCTURE_SIZE, 1, courses_file) == 1) {
         if (course->is_deleted == 0) {
             items_cnt++;
         }
@@ -405,13 +395,10 @@ size_t count_all_s() {
     if (courses_file == 0) {
         return 0;
     }
-
-    int course_structure_size = sizeof(struct Course);
-
-    struct Course *course = malloc(course_structure_size);
+    struct Course *course = malloc(COURSES_STRUCTURE_SIZE);
 
     int items_cnt = 0;
-    while (fread(course, course_structure_size, 1, courses_file) == 1) {
+    while (fread(course, COURSES_STRUCTURE_SIZE, 1, courses_file) == 1) {
         if (course->is_deleted == 0) {
             items_cnt += count_s(course->course_id);
         }
@@ -428,8 +415,6 @@ size_t count_s(int course_id) {
         printf("course with such id already deleted");
         return -1;
     }
-    size_t group_structure_size = sizeof(struct Group);
-
     int group_address = course->group_address;
     free(course);
 
@@ -439,10 +424,10 @@ size_t count_s(int course_id) {
     }
 
     int groups_cnt = 0;
-    struct Group *group = malloc(group_structure_size);
+    struct Group *group = malloc(COURSES_STRUCTURE_SIZE);
     while (group_address != -1) {
         fseek(groups_file, group_address, SEEK_SET);
-        size_t group_items_read_cnt = fread(group, group_structure_size, 1, groups_file);
+        size_t group_items_read_cnt = fread(group, COURSES_STRUCTURE_SIZE, 1, groups_file);
         if (group_items_read_cnt != 1) {
             printf("error while reading groups file occurred");
             fclose(groups_file);
