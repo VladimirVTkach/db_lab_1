@@ -201,11 +201,11 @@ int update_m(struct Course course) {
     }
 
     long main_file_address = index->address;
+    free(index_buffer);
 
     FILE *main_file = fopen(COURSES_FILE_PATH, "r+");
     if (main_file == 0) {
         printf("main file not found");
-        free(index_buffer);
         return -1;
     }
     fseek(main_file, main_file_address, SEEK_SET);
