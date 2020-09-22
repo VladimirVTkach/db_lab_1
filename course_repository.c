@@ -116,18 +116,37 @@ struct Group *get_s(int course_id, int group_id) {
 
 int del_m(int course_id) {
     struct Course *course = get_m(course_id);
-    if (course != 0) {
-        course->is_deleted = 1;
 
-        struct Group *group = get_s(course_id, course->group_address);
-        while (group != 0) {
-            del_s(course_id, group->group_id);
-            group = get_s(course_id, group->next_group_address);
+    if (course == 0) {
+        printf("course with such id already deleted");
+        return -1;
+    }
+    size_t group_structure_size = sizeof(struct Group);
+
+    int group_address = course->group_address;
+    free(course);
+
+    FILE *groups_file = fopen(GROUPS_FILE_PATH, "r");
+    if (groups_file == 0) {
+        printf("groups file not found");
+        return -1;
+    }
+
+    struct Group *group = malloc(group_structure_size);
+    while (group_address != -1) {
+        fseek(groups_file, group_address, SEEK_SET);
+        size_t group_items_read_cnt = fread(group, group_structure_size, 1, groups_file);
+        if (group_items_read_cnt != 1) {
+            printf("error while reading groups file occurred");
+            fclose(groups_file);
+            free(group);
+            return -1;
         }
 
-        return update_m(*course);
+        del_s(course_id, group->group_id);
+        group_address = group->next_group_address;
     }
-    return -1;
+    return 0;
 }
 
 int del_s(int course_id, int group_id) {
