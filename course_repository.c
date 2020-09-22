@@ -126,7 +126,6 @@ int del_m(int course_id) {
 
     FILE *groups_file = fopen(GROUPS_FILE_PATH, "r");
     if (groups_file == 0) {
-        printf("groups file not found");
         return -1;
     }
 
