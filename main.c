@@ -21,11 +21,9 @@ int main() {
 
     struct Group *foundGroup = get_s(2, 4);
     if (foundGroup != 0) {
-        printf("group_id: %d\nname: %s\nnext_group_address: %d\nis_deleted: %d",
+        printf("group_id: %d\nname: %s\n",
                foundGroup->group_id,
-               foundGroup->name,
-               foundGroup->next_group_address,
-               foundGroup->is_deleted);
+               foundGroup->name);
     } else {
         printf("not found");
     }
