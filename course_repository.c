@@ -120,7 +120,6 @@ int del_m(int course_id) {
         return -1;
     }
     int group_address = course->group_address;
-    free(course);
 
     FILE *groups_file = fopen(GROUPS_FILE_PATH, "r");
     if (groups_file == 0) {
