@@ -374,7 +374,7 @@ int insert_s(int course_id, struct Group group) {
 size_t count_m() {
     FILE *courses_file = fopen(COURSES_FILE_PATH, "r");
     if (courses_file == 0) {
-        return 0;
+        return -1;
     }
     struct Course *course = malloc(COURSES_STRUCTURE_SIZE);
 
@@ -392,7 +392,7 @@ size_t count_m() {
 size_t count_all_s() {
     FILE *courses_file = fopen(COURSES_FILE_PATH, "r");
     if (courses_file == 0) {
-        return 0;
+        return -1;
     }
     struct Course *course = malloc(COURSES_STRUCTURE_SIZE);
 
